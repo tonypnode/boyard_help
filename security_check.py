@@ -1,14 +1,11 @@
 import requests
 from datetime import datetime as dtg
 import json
+import logging
 
-log_this = True
-
-if log_this:
-    import logging
-    logging.basicConfig(level=logging.DEBUG)
-    logger = logging.getLogger('security_checker')
-    logger.debug(str(dtg.now()) + ': check started')
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger('security_checker')
+logger.debug(str(dtg.now()) + ': check started')
 
 
 def get_cmdb_data(device_type):
