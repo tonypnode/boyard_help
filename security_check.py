@@ -2,8 +2,9 @@ import requests
 from datetime import datetime as dtg
 import json
 import logging
+import sys
 
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=logging.DEBUG, filename='/opt/sec_check/test1.txt')
 logger = logging.getLogger('security_checker')
 logger.debug(str(dtg.now()) + ': check started')
 
@@ -87,4 +88,38 @@ def create_vuln_report():
     :return html
     """
 
-psirt_query(psirt_get_token())
+
+def call_api(url):
+    try:
+        r = requests.get(url)
+    except requests.exceptions.RequestException as e:
+        print(e)
+        return None
+    if r.status_code != 200:
+        return None
+    else:
+        return r.json()
+
+def show_vendor_product(vendor, product):
+    """Show a specific product for a vendor"""
+    logger.debug("Searching: {} from {}".format(product, vendor))
+    search_url =  "http://cve.circl.lu/api/search/{}/{}".format(vendor,product)
+    req = call_api(search_url)
+    if not req:
+        logger.debug("something no workie with the vendor product call")
+    else:
+        for item in req:
+            if 'HTTP' in item['summary']:
+                print("\nSummary: " + item['summary'])
+                print("CVE: " + item['id'])
+                print("CVSS: " + str(item['cvss']))
+
+
+show_vendor_product('cisco', 'ios')
+
+# psirt_query(psirt_get_token())
+
+
+if __name__ == "__main__":
+    logger.debug('yo')
+
