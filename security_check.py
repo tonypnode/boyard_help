@@ -6,8 +6,6 @@ import sys
 
 logging.basicConfig(level=logging.DEBUG, filename='/opt/sec_check/test1.txt')
 logger = logging.getLogger('security_checker')
-logger.debug(str(dtg.now()) + ': check started')
-
 
 def get_cmdb_data(device_type):
     """
@@ -88,38 +86,53 @@ def create_vuln_report():
     :return html
     """
 
-
 def call_api(url):
     try:
         r = requests.get(url)
     except requests.exceptions.RequestException as e:
-        print(e)
+        logger.error('API CALL ERROR: {}'.format(e))
         return None
     if r.status_code != 200:
         return None
     else:
         return r.json()
 
-def show_vendor_product(vendor, product):
-    """Show a specific product for a vendor"""
-    logger.debug("Searching: {} from {}".format(product, vendor))
-    search_url =  "http://cve.circl.lu/api/search/{}/{}".format(vendor,product)
+
+def show_vendor_product():
+    """
+    Show a specific product for a vendor
+    # TODO: Needs input validation
+    """
+    vendor = input("Enter the Vendor: ")
+    product = input("Enter the product: ")
+    filter_string = input("Enter Optional Search string (i.e. HTTP): ")
+    logger.debug("Searching: {} from {} -- Filter = {}".format(product, vendor, filter_string))
+    search_url = "http://cve.circl.lu/api/search/{}/{}".format(vendor, product)
     req = call_api(search_url)
     if not req:
         logger.debug("something no workie with the vendor product call")
     else:
+        print("Searching: {} from {} -- Filter = {}".format(product, vendor, filter_string))
         for item in req:
-            if 'HTTP' in item['summary']:
+            if filter_string != '' or not filter_string:
+                if filter_string in item['summary']:
+                    print("\nSummary: " + item['summary'])
+                    print("CVE: " + item['id'])
+                    print("CVSS: " + str(item['cvss']))
+            else:
                 print("\nSummary: " + item['summary'])
                 print("CVE: " + item['id'])
                 print("CVSS: " + str(item['cvss']))
+    menu()
 
 
-show_vendor_product('cisco', 'ios')
-
-# psirt_query(psirt_get_token())
+def menu():
+    options = [sys.exit, show_vendor_product]
+    print("Which would you like to do \n\t 1) Show Vulnerabilities by Vendor/Product \n\t0) Exit")
+    response = input(": ")
+    options[int(response)]()
 
 
 if __name__ == "__main__":
-    logger.debug('yo')
+    menu()
 

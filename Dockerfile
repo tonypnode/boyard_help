@@ -10,4 +10,3 @@ COPY requirements.txt requirements.txt
 COPY security_check.py security_check.py
 RUN pip3 install --upgrade pip
 RUN pip3 install -r requirements.txt
-RUN python3 security_check.py
